@@ -1,0 +1,18 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<UserSecretsId>d3da7bc6-8154-41aa-a71e-4f0b409e6dd0</UserSecretsId>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="MessagePack" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Kanban.ApiService\Kanban.Api.csproj" />
+		<ProjectReference Include="..\Kanban.Web\Kanban.Web.csproj" />
+
+		<!--<PackageReference Include="Aspire.Hosting.Redis" />-->
+	</ItemGroup>
+</Project>

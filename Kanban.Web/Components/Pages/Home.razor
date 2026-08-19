@@ -1,0 +1,153 @@
+@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <h1 class="logo">Kanban</h1>
+
+            <button class="btn-primary" id="addColumnBtn" @onclick="OpenAddColumnModal" disabled="@(CurrentProject is null)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Column
+            </button>
+            <button class="btn-primary" id="addTaskBtn" @onclick="OpenAddTaskModal" disabled="@(CurrentProject is null)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Add Task
+            </button>
+        </div>
+    </div>
+</header>
+
+<main class="board-container">
+    <div class="container">
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="alert alert-danger">@errorMessage</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(feedbackMessage))
+        {
+            <div class="alert alert-success">@feedbackMessage</div>
+        }
+
+        <div class="board">
+            @if (isLoading)
+            {
+                <div>Loading projects...</div>
+            }
+            else if (CurrentProject is not null)
+            {
+                var project = CurrentProject;
+                foreach (var column in project.Columns.OrderBy(c => c.Order))
+                {
+                    <div class="column @(IsDragOver(column.Id) ? "drag-over" : null)" @key="column.Id" @ondragover:preventDefault @ondrop="(e) => OnDrop(e, column.Id)">
+                        <div class="column-header">
+                            <h2 class="column-title">@column.Name</h2>
+                            <div class="column-header-actions">
+                                <span class="task-count">@column.Tasks.Count</span>
+                                <button type="button" class="btn-secondary" @onclick="() => OpenEditColumnModal(column)" @onclick:stopPropagation="true">Edit</button>
+                            </div>
+                        </div>
+                        <div class="tasks-container" @ondragenter="(e) => OnContainerDragEnter(e, column.Id)" @ondragleave="(e) => OnContainerDragLeave(e, column.Id)">
+                            @for (int i = 0; i < column.Tasks.Count; i++)
+                            {
+                                var task = column.Tasks[i];
+                                var taskIndex = i;
+
+                                if (dropTargetColumnId == column.Id && dropIndex == taskIndex)
+                                {
+                                    <div class="drop-placeholder"></div>
+                                }
+
+                                <div class="task-item" draggable="true" @ondragstart="(e) => OnDragStart(e, column.Id, task.Id, taskIndex)" @ondragenter="(e) => OnDragEnter(e, column.Id, taskIndex)" @ondragover="(e) => OnTaskDragOver(e, column.Id, taskIndex)" @ondragleave="(e) => OnTaskDragLeave(e)" @key="task.Id">
+                                    <div class="task-title">@task.Name</div>
+                                    <div class="task-description">@task.Description</div>
+                                    <button type="button" class="task-edit-btn" @onclick="() => OpenEditTaskModal(column, task)" @onclick:stopPropagation="true">Edit</button>
+                                </div>
+                            }
+
+                            @if (dropTargetColumnId == column.Id && dropIndex == column.Tasks.Count)
+                            {
+                                <div class="drop-placeholder"></div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div>No projects found. Create one to begin.</div>
+            }
+        </div>
+    </div>
+    @if (activeAction != BoardActionMode.None)
+    {
+        <div class="modal-overlay" @onclick="CloseBoardActionModalAsync">
+            <div class="modal-div" @onclick:stopPropagation="true">
+                <div class="modal-header">
+                    <h3 class="modal-title">@ModalTitle</h3>
+                    <button class="close-btn" type="button" @onclick="CloseBoardActionModalAsync">&times;</button>
+                </div>
+                <EditForm Model="boardAction" OnValidSubmit="HandleBoardActionAsync">
+                    <DataAnnotationsValidator />
+
+                    @if (ShowColumnSelector)
+                    {
+                        <div class="form-group">
+                            <label for="taskColumn">Column</label>
+                            <select id="taskColumn" @bind="selectedColumnIdString" required>
+                                <option value="">-- Select Column --</option>
+                                @if (CurrentProject?.Columns is not null)
+                                {
+                                    @foreach (var column in CurrentProject.Columns.OrderBy(c => c.Order))
+                                    {
+                                        <option value="@column.Id.ToString()">@column.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    }
+
+                    <div class="form-group">
+                        <label for="actionName">@NameLabel</label>
+                        <InputText id="actionName" @bind-Value="boardAction.Name" placeholder="@($"Enter {NameLabel.ToLowerInvariant()}")" />
+                        <ValidationMessage For="() => boardAction.Name" />
+                    </div>
+
+                    @if (ShowOrderField)
+                    {
+                        <div class="form-group">
+                            <label for="actionOrder">Order</label>
+                            <InputNumber id="actionOrder" @bind-Value="boardAction.Order" />
+                        </div>
+                    }
+
+                    @if (ShowDescriptionField)
+                    {
+                        <div class="form-group">
+                            <label for="actionDescription">Description</label>
+                            <InputTextArea id="actionDescription" @bind-Value="boardAction.Description" rows="3" placeholder="Enter description" />
+                        </div>
+                    }
+
+                    <div class="modal-footer">
+                        @if (IsEditMode)
+                        {
+                            <button type="button" class="btn-danger" @onclick="HandleDeleteAsync" @onclick:stopPropagation="true">Delete</button>
+                        }
+                        <button type="button" class="btn-secondary" @onclick="CloseBoardActionModalAsync">Cancel</button>
+                        <button type="submit" class="btn-primary">Save</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</main>
+
