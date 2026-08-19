@@ -13,7 +13,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpClient<ProjectRepository>(client =>
     {
-        client.BaseAddress = new("https+http://apiservice");
+        client.BaseAddress = new("https+http://api");
     });
 
 var app = builder.Build();

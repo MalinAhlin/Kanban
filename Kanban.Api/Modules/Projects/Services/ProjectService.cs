@@ -1,7 +1,7 @@
-using Kanban.ApiService.Modules.Projects.Dtos;
-using Kanban.ApiService.Modules.Projects.Models;
+using Kanban.Api.Modules.Projects.Dtos;
+using Kanban.Api.Modules.Projects.Models;
 
-namespace Kanban.ApiService.Modules.Projects.Services;
+namespace Kanban.Api.Modules.Projects.Services;
 
 public class ProjectService
 {
@@ -140,6 +140,49 @@ public class ProjectService
         task.Name = request.Name.Trim();
         task.Description = request.Description?.Trim() ?? string.Empty;
         return Task.FromResult<KanbanTask?>(task);
+    }
+
+    public Task<bool> DeleteColumnAsync(Guid projectId, Guid columnId)
+    {
+        var project = Projects.FirstOrDefault(p => p.Id == projectId);
+        if (project == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        var column = project.Columns.FirstOrDefault(c => c.Id == columnId);
+        if (column == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        project.Columns.Remove(column);
+        NormalizeColumnOrder(project);
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> DeleteTaskAsync(Guid projectId, Guid columnId, Guid taskId)
+    {
+        var project = Projects.FirstOrDefault(p => p.Id == projectId);
+        if (project == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        var column = project.Columns.FirstOrDefault(c => c.Id == columnId);
+        if (column == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        var task = column.Tasks.FirstOrDefault(t => t.Id == taskId);
+        if (task == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        column.Tasks.Remove(task);
+        return Task.FromResult(true);
     }
 
     private static void NormalizeColumnOrder(Project project)

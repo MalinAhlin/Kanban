@@ -10,7 +10,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Kanban.ApiService\Kanban.Api.csproj" />
+		<ProjectReference Include="..\Kanban.Api\Kanban.Api.csproj" />
 		<ProjectReference Include="..\Kanban.Web\Kanban.Web.csproj" />
 
 		<!--<PackageReference Include="Aspire.Hosting.Redis" />-->

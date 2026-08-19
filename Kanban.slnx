@@ -4,7 +4,7 @@
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="Kanban.ApiService/Kanban.Api.csproj" />
+  <Project Path="Kanban.Api/Kanban.Api.csproj" />
   <Project Path="Kanban.AppHost/Kanban.AppHost.csproj" />
   <Project Path="Kanban.ServiceDefaults/Kanban.ServiceDefaults.csproj" />
   <Project Path="Kanban.Tests/Kanban.Tests.csproj" />

@@ -2,7 +2,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 //var cache = builder.AddRedis("cache");
 
-var apiService = builder.AddProject<Projects.Kanban_Api>("apiservice")
+var apiService = builder.AddProject<Projects.Kanban_Api>("api")
     .WithHttpHealthCheck("/health");
 
 builder.AddProject<Projects.Kanban_Web>("webfrontend")
